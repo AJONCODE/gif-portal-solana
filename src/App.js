@@ -5,10 +5,17 @@ import React from 'react';
 // Constants
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
+const TEST_GIFS = [
+  'https://media.giphy.com/media/Yv6RcuiyHYmn6/giphy.gif',
+  'https://media.giphy.com/media/l3q2QYwaBdjZGz1II/giphy.gif',
+	'https://media.giphy.com/media/3o7abJW5ZuiByDelji/giphy.gif',
+];
 
 const App = () => {
   // State
   const [walletAddress, setWalletAddress] = React.useState(null);
+  const [inputValue, setInputValue] = React.useState("");
+  const [gifList, setGifList] = React.useState([]);
 
   /*
    * This function holds the logic for deciding if a Phantom Wallet is
@@ -56,6 +63,21 @@ const App = () => {
     }
   };
 
+  const sendGif = async () => {
+    if (inputValue.length > 0) {
+      console.log("Gif link: ", inputValue);
+      setGifList([...gifList, inputValue]);
+      setInputValue('');
+    } else {
+      console.log("Empty input. Try again.");
+    }
+  };
+
+  const onInputChange = (event) => {
+    const { value } = event.target;
+    setInputValue(value);
+  };
+
   /*
    * We want to render this UI when the user hasn't connected
    * their wallet to our app yet.
@@ -67,6 +89,37 @@ const App = () => {
     >
       Connect to Wallet
     </button>
+  );
+
+  const renderConnectedContainer = () => (
+    <div className="connected-container">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          sendGif();
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Enter gif link!"
+          value={inputValue}
+          onChange={onInputChange}
+        />
+        <button
+          type="submit"
+          className="cta-button submit-gif-button"
+        >
+          Submit
+        </button>
+      </form>
+      <div className="gif-grid">
+        {gifList.map(gif => (
+          <div className="gif-item" key={gif}>
+            <img src={gif} alt={gif} />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 
   /*
@@ -82,6 +135,17 @@ const App = () => {
     return () => window.removeEventListener('load', onLoad);
   }, []);
 
+  React.useEffect(() => {
+    if (walletAddress) {
+      console.log("Fetching GIF list...");
+
+      // Call Solana program here
+
+      // Set State
+      setGifList(TEST_GIFS);
+    }
+  }, [walletAddress]);
+
   return (
     <div className="App">
       <div className={walletAddress ? 'authed-container' : 'container'}>
@@ -92,6 +156,9 @@ const App = () => {
           </p>
           {/* Render your connect to wallet button right here */}
           {!walletAddress && renderNotConnectedContainer()}
+
+          {/* Render the gif container */}
+          {walletAddress && renderConnectedContainer()}
         </div>
         <div className="footer-container">
           <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
